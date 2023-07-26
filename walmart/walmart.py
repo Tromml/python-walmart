@@ -21,7 +21,7 @@ def epoch_milliseconds(dt):
 
 class Walmart(object):
 
-    def __init__(self, client_id, client_secret):
+    def __init__(self, client_id, client_secret, headers):
         """To get client_id and client_secret for your Walmart Marketplace
         visit: https://developer.walmart.com/#/generateKey
         """
@@ -34,10 +34,11 @@ class Walmart(object):
         session = requests.Session()
         session.headers.update({
             "WM_SVC.NAME": "Walmart Marketplace",
-            "WM_CONSUMER.CHANNEL.TYPE": "4dd9c544-82be-4411-ae21-1693ab8fb036",
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json",
         })
+        if headers:
+            session.headers.update(headers)
         session.auth = HTTPBasicAuth(self.client_id, self.client_secret)
         self.session = session
 
