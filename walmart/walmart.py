@@ -37,8 +37,8 @@ class Walmart(object):
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json",
         })
-        if headers:
-            session.headers.update(headers)
+        if headers: # additional headers if required to pass
+            session.headers.update(headers) 
         session.auth = HTTPBasicAuth(self.client_id, self.client_secret)
         self.session = session
 
@@ -181,13 +181,13 @@ class Items(Resource):
 
         return list(csv.DictReader(io.StringIO(product_report)))
     
-    def search(self, **kwargs):
+    def search(self, **kwargs): # search method to hit request to search endpoint with keywords
         url = self.url + "/walmart/search"
         return self.connection.send_request(
             method="GET", url=url, params=kwargs
         )
     
-    def get_taxonomy(self):
+    def get_taxonomy(self): # taxonomy method to hit request to taxonomy endpoint
         url = self.url + "/taxonomy"
         return self.connection.send_request(
             method="GET", url=url
