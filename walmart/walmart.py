@@ -21,7 +21,7 @@ def epoch_milliseconds(dt):
 
 class Walmart(object):
 
-    def __init__(self, client_id, client_secret, headers):
+    def __init__(self, client_id, client_secret, headers=None):
         """To get client_id and client_secret for your Walmart Marketplace
         visit: https://developer.walmart.com/#/generateKey
         """
