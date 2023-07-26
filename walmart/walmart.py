@@ -21,7 +21,7 @@ def epoch_milliseconds(dt):
 
 class Walmart(object):
 
-    def __init__(self, client_id, client_secret):
+    def __init__(self, client_id, client_secret, headers=None):
         """To get client_id and client_secret for your Walmart Marketplace
         visit: https://developer.walmart.com/#/generateKey
         """
@@ -37,6 +37,8 @@ class Walmart(object):
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json",
         })
+        if headers: # additional headers if required to pass
+            session.headers.update(headers) 
         session.auth = HTTPBasicAuth(self.client_id, self.client_secret)
         self.session = session
 
@@ -178,6 +180,18 @@ class Items(Resource):
         product_report = zf.read(zf.infolist()[0]).decode("utf-8")
 
         return list(csv.DictReader(io.StringIO(product_report)))
+    
+    def search(self, **kwargs): # search method to hit request to search endpoint with keywords
+        url = self.url + "/walmart/search"
+        return self.connection.send_request(
+            method="GET", url=url, params=kwargs
+        )
+    
+    def get_taxonomy(self): # taxonomy method to hit request to taxonomy endpoint
+        url = self.url + "/taxonomy"
+        return self.connection.send_request(
+            method="GET", url=url
+        )
 
 
 class Inventory(Resource):
@@ -355,6 +369,10 @@ class Orders(Resource):
                     }
                 }
             raise
+    
+    def get_released_orders(self, **kwargs): # method to hit released orders api
+        url = self.url + '/released'
+        return self.connection.send_request(method='GET', url=url, params=kwargs)
 
     def acknowledge(self, id):
         url = self.url + '/%s/acknowledge' % id
