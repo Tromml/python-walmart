@@ -370,7 +370,7 @@ class Orders(Resource):
                 }
             raise
     
-    def get_released_orders(self, **kwargs):
+    def get_released_orders(self, **kwargs): # method to hit released orders api
         url = self.url + '/released'
         return self.connection.send_request(method='GET', url=url, params=kwargs)
 
