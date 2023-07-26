@@ -34,6 +34,7 @@ class Walmart(object):
         session = requests.Session()
         session.headers.update({
             "WM_SVC.NAME": "Walmart Marketplace",
+            "WM_CONSUMER.CHANNEL.TYPE": "4dd9c544-82be-4411-ae21-1693ab8fb036",
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json",
         })
@@ -178,6 +179,18 @@ class Items(Resource):
         product_report = zf.read(zf.infolist()[0]).decode("utf-8")
 
         return list(csv.DictReader(io.StringIO(product_report)))
+    
+    def search(self, **kwargs):
+        url = self.url + "/walmart/search"
+        return self.connection.send_request(
+            method="GET", url=url, params=kwargs
+        )
+    
+    def get_taxonomy(self):
+        url = self.url + "/taxonomy"
+        return self.connection.send_request(
+            method="GET", url=url
+        )
 
 
 class Inventory(Resource):
@@ -355,6 +368,10 @@ class Orders(Resource):
                     }
                 }
             raise
+    
+    def get_released_orders(self, **kwargs):
+        url = self.url + '/released'
+        return self.connection.send_request(method='GET', url=url, params=kwargs)
 
     def acknowledge(self, id):
         url = self.url + '/%s/acknowledge' % id
