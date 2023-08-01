@@ -249,6 +249,14 @@ class Inventory(Resource):
             body=self.get_inventory_payload(sku, quantity),
             request_headers=headers
         )
+    
+    def get_multiple_item_inventory_for_all_ship_nodes(self, **kwargs):
+        url = self.url.replace("inventory", "inventories")
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params=kwargs
+        )
 
     def get_inventory_payload(self, sku, quantity):
         element = ElementMaker(
