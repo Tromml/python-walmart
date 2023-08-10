@@ -76,10 +76,22 @@ class Walmart(object):
     @property
     def report(self):
         return Report(connection=self)
+    
+    @property
+    def report_request(self):
+        return ReportRequest(connection=self)
 
     @property
     def feed(self):
         return Feed(connection=self)
+    
+    @property
+    def returns(self):
+        return Returns(connection=self)
+    
+    @property
+    def fulfillment(self):
+        return Fulfillment(connection=self)
 
     def send_request(
         self, method, url, params=None, body=None, json=None,
@@ -304,6 +316,21 @@ class Prices(Resource):
     path = 'prices'
     feedType = 'price'
 
+    def get_repricer_strategies(self, **kwargs):
+        url = self.url.replace("prices", "repricer") + "/strategies"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params=kwargs
+        )
+    
+    def get_promotional_prices(self, sku):
+        url = self.url.replace("prices", "promo")+f"/sku/{sku}"
+        return self.connection.send_request(
+            method="GET",
+            url=url
+        )
+
     def get_payload(self, items):
         root = ElementMaker(
             nsmap={'gmp': 'http://walmart.com/'}
@@ -494,6 +521,34 @@ class Report(Resource):
 
     path = 'getReport'
 
+class ReportRequest(Resource):
+    path = "reports"
+
+    def create_report_request(self, report_type, report_version):
+        url = self.url + "/reportRequests"
+        return self.connection.send_request(
+            method="POST",
+            url=url,
+            params={
+                "reportType":report_type,
+                "reportVersion": report_version
+            }
+        )
+
+    def get_report_request_status(self, request_id):
+        url = self.url + f"/reportRequests/{request_id}"
+        return self.connection.send_request(
+            method="GET",
+            url=url
+        )
+    
+    def get_download_report_url(self, request_id):
+        url = self.url + f"/downloadReport"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params={"requestId":request_id}
+        )
 
 class Feed(Resource):
     path = "feeds"
@@ -528,3 +583,101 @@ class Feed(Resource):
                 "offset": offset,
             },
         )
+
+
+
+class Returns(Resource):
+    """
+    Get information about returns
+    """
+
+    path = 'returns'
+
+    def get_return_details(self, **kwargs):
+        url = self.url
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params=kwargs
+        )
+    
+
+class Fulfillment(Resource):
+    """
+        Get information about fulfillment
+    """
+
+    path = 'fulfillment'
+
+    def get_wfs_inventory(self, **kwargs):
+        url = self.url + "/inventory"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params=kwargs
+        )
+    
+    def get_wfs_orders(self, **kwargs):
+        url = self.url.replace("fulfillment", "orders")
+        params = {"shipNodeType":"WFSFulfilled"}
+        if kwargs:
+            params.update(kwargs)
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params=params
+        )
+    
+    def get_inbound_shipment(self, shipment_id):
+        url = self.url + "/inbound-shipments"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params={"shipmentId":shipment_id}
+        )
+    
+    def get_inbound_shipment_items(self, shipment_id):
+        url = self.url + "/inbound-shipment-items"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params={"shipmentId":shipment_id}
+        )
+    
+    def get_wfs_inventory_health_report(self):
+        url = self.url.replace("fulfillment", "report")+"/wfs/getInventoryHealthReport"
+        # headers = {
+        #     'Accept': "application/octet-stream"
+        # }
+        return self.connection.send_request(
+            method="GET",
+            url=url
+            # request_headers = headers
+        )
+    
+    def get_shipments(self, **kwargs):
+        url = self.url + "/inbound-shipments"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params=kwargs
+        )
+    
+    def get_inventory_log(self, **kwargs):
+        url = self.url + "/inventory-log"
+        return self.connection.send_request(
+            method = "GET",
+            url = url,
+            params=kwargs
+        )
+    
+    def get_carrier_quotes(self, **kwargs):
+        url = self.url + "/carrier-rate-quotes"
+        return self.connection.send_request(
+            method = "GET",
+            url = url,
+            params=kwargs
+        ) 
+    
+
+
