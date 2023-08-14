@@ -553,6 +553,15 @@ class ReportRequest(Resource):
             params={"requestId":request_id}
         )
 
+    def download_recon_report(self, report_date, report_version="v1"):
+        url=self.url.replace("reports", "report")+"/reconreport/reconFile"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params={"reportDate":report_date, "reportVersion":report_version},
+            octet_stream=True
+        )
+
 class Feed(Resource):
     path = "feeds"
 
