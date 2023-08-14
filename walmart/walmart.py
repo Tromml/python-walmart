@@ -151,6 +151,8 @@ class Walmart(object):
         except ValueError:
             # In case of reports, there is no JSON response, so return the
             # content instead which contains the actual report
+            if octet_stream:
+                return response.content, response.headers.get("Content-Disposition") #filename is present in header
             return response.content
 
 
