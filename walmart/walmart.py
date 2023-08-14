@@ -95,7 +95,7 @@ class Walmart(object):
 
     def send_request(
         self, method, url, params=None, body=None, json=None,
-        request_headers=None
+        request_headers=None, octet_stream=False
     ):
         # A unique ID which identifies each API call and used to track
         # and debug issues; use a random generated GUID for this ID
@@ -104,6 +104,9 @@ class Walmart(object):
         }
         if request_headers:
             headers.update(request_headers)
+        if octet_stream:
+            headers["Accept"] = "application/octet-stream"
+            
 
         response = None
         if method == "GET":
