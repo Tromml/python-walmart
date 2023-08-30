@@ -9,8 +9,9 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 from lxml import etree
 from lxml.builder import E, ElementMaker
+import xml.etree.ElementTree as ET
 
-from .exceptions import WalmartAuthenticationError
+from .exceptions import WalmartAuthenticationError, WalmartException
 
 
 def epoch_milliseconds(dt):
@@ -95,7 +96,7 @@ class Walmart(object):
 
     def send_request(
         self, method, url, params=None, body=None, json=None,
-        request_headers=None
+        request_headers=None, octet_stream=False
     ):
         # A unique ID which identifies each API call and used to track
         # and debug issues; use a random generated GUID for this ID
@@ -104,6 +105,9 @@ class Walmart(object):
         }
         if request_headers:
             headers.update(request_headers)
+        if octet_stream:
+            headers["Accept"] = "application/octet-stream"
+            
 
         response = None
         if method == "GET":
@@ -134,7 +138,16 @@ class Walmart(object):
                         "com/#/generateKey"
                     ))
                 elif response.status_code == 400:
-                    data = response.json()
+                    try:
+                        data = response.json()
+                    except Exception as ex:
+                        root = ET.fromstring(response.text)
+
+                        # Iterate through error elements
+                        data = {}
+                        data["error"] = []
+                        for error in root.findall('error'):
+                            data["error"].append({"code":error.find('code').text})
                     if "error" in data and data["error"][0]["code"] == \
                             "INVALID_TOKEN.GMP_GATEWAY_API":
                         # Refresh the token as the current token has expired
@@ -142,12 +155,16 @@ class Walmart(object):
                         return self.send_request(
                             method, url, params, body, request_headers
                         )
+                    elif "error" in data and "NO_REPORT" in response.text:
+                        return [], None
                 raise
         try:
             return response.json()
         except ValueError:
             # In case of reports, there is no JSON response, so return the
             # content instead which contains the actual report
+            if octet_stream:
+                return response.content, response.headers.get("Content-Disposition") #filename is present in header
             return response.content
 
 
@@ -548,6 +565,15 @@ class ReportRequest(Resource):
             method="GET",
             url=url,
             params={"requestId":request_id}
+        )
+
+    def download_recon_report(self, report_date, report_version="v1"):
+        url=self.url.replace("reports", "report")+"/reconreport/reconFile"
+        return self.connection.send_request(
+            method="GET",
+            url=url,
+            params={"reportDate":report_date, "reportVersion":report_version},
+            octet_stream=True
         )
 
 class Feed(Resource):
